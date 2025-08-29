@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { ApiResponse, AsyncHandler } from "../utils/ApiHelpers";
 import { ITask } from "../types/ITask";
 import taskModel from "../models/task.model";
+import { toObjectId } from "../utils/toObjectId";
 
 const createTask = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -36,4 +37,43 @@ const createTask = AsyncHandler(
   }
 );
 
-export { createTask };
+const updateTask = AsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    if (!id) throw new ApiResponse(400, {}, "Task id is required");
+
+    const { title, description, priority, status, dueDate, assignedTo } =
+      req.body;
+
+    if (!title)
+      return res
+        .status(400)
+        .json(new ApiResponse(400, {}, "All fields are required"));
+
+    const task: ITask = {
+      title,
+      description: description ?? "",
+      priority: priority ?? "low",
+      status: status ?? "to-do",
+    };
+
+    if (dueDate) task.dueDate = new Date(dueDate);
+    if (assignedTo) task.assignedTo = assignedTo;
+
+    const updatedTask = await taskModel.findByIdAndUpdate(toObjectId(id), task, {
+      new: true,
+    });
+
+    if (!updatedTask)
+      return res
+        .status(400)
+        .json(new ApiResponse(400, {}, "Failed to update a task"));
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedTask, "Task updated successfully!"));
+  }
+);
+
+export { createTask, updateTask };

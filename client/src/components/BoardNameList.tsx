@@ -7,23 +7,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useBoardStore from "@/store/boardStore";
+import clsx from "clsx";
 import { useParams } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 
 function BoardNameList() {
+  const [open, setOpen] = useState(false);
   const boards = useBoardStore((state) => state.boards);
 
   const { boardId } = useParams();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setOpen} open={open}   >
       <DropdownMenuTrigger>
         <h1 className="flex justify-center items-center space-x-2 hover:bg-zinc-300 px-2 py-1 rounded-md cursor-pointer transition-all">
           <span>
             {boards.find((board) => board._id === boardId)?.name || "Board"}
           </span>
-          <IoIosArrowDown />
+          <IoIosArrowDown className={clsx(open ? "rotate-180" : "", "transition-all")} />
         </h1>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

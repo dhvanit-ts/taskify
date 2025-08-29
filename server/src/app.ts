@@ -7,6 +7,7 @@ import http from "http";
 // routes
 import healthRouter from "./routes/health.route";
 import userRouter from "./routes/user.routes";
+import taskRouter from "./routes/task.route";
 
 const app = express();
 const server = http.createServer(app);
@@ -37,7 +38,8 @@ io.on("connection", (socket) => {
 });
 
 // routes
-app.use("/api/v1/users", healthRouter);
+app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/tasks", taskRouter);
 
 export default server;

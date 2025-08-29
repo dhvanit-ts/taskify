@@ -6,54 +6,107 @@ import TaskList from "@/components/TaskList";
 import statusColumns from "@/constants/statusColumns";
 import useTodoStore from "@/store/taskStore";
 import {
+  Active,
   closestCenter,
   DndContext,
   DragEndEvent,
   DragStartEvent,
   KeyboardSensor,
   MouseSensor,
+  Over,
+  PointerSensor,
   TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import React from "react";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import axios from "axios";
+import React, { useState } from "react";
 import { IoSearch } from "react-icons/io5";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import TaskForm from "@/components/TaskForm";
+import { FaPlus } from "react-icons/fa6";
 
 function BoardPage() {
   const moveTodo = useTodoStore((s) => s.moveTodo);
+  const todos = useTodoStore((s) => s.todos);
 
   const handleDragStart = (e: DragStartEvent) => {
     // console.log(e);
   };
 
-  const handleDragEnd = (e: DragEndEvent) => {
+  const handleDragEndApi = async (active: Active, over: Over) => {
+    try {
+      const activeId = active?.data.current?.id;
+      const overId = over?.data.current?.id;
+      const todo = todos.find((todo) => todo._id === activeId);
+      if (activeId && overId) {
+        await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/tasks/update/${activeId}`,
+          {
+            title: todo?.title,
+            description: todo?.description,
+            priority: todo?.priority,
+            status: over?.data.current?.id,
+          },
+          { withCredentials: true }
+        );
+      }
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  };
+
+  const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
 
+    if (!over) return;
     if (
       over?.data.current &&
       over?.data.current.id === active?.data.current?.currentStatus
     )
       return;
-    moveTodo(active.data.current?.id, over?.data.current?.id);
+
+    const activeId = active.data.current?.id;
+    moveTodo(activeId, over?.data.current?.id);
+    const success = await handleDragEndApi(active, over);
+    if (!success) moveTodo(activeId, active?.data.current?.currentStatus);
   };
 
   const sensors = useSensors(
     useSensor(MouseSensor),
     useSensor(TouchSensor),
-    useSensor(KeyboardSensor)
+    useSensor(KeyboardSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
   );
 
   return (
     <div className="max-h-screen h-screen space-y-2 p-4 bg-zinc-50">
       <div className="w-full h-10 rounded-md flex justify-between items-center bg-zinc-200 text-zinc-900 font-semibold px-3 py-1.5">
         <BoardNameList />
-        <div className="bg-zinc-100 rounded-md flex items-center space-x-2 pl-2">
-          <IoSearch className="text-zinc-400" />
-          <input
-            type="text"
-            className="w-72 pr-2 py-1 rounded-md outline-0"
-            placeholder="Search for tasks..."
-          />
+        <div className="flex space-x-1">
+          <div className="bg-zinc-100 rounded-md flex items-center space-x-2 pl-2">
+            <IoSearch className="text-zinc-400" />
+            <input
+              type="text"
+              className="w-72 pr-2 py-1 rounded-md outline-0"
+              placeholder="Search for tasks..."
+            />
+          </div>
+          <CreateTaskButton />
         </div>
         <div></div>
       </div>
@@ -63,6 +116,7 @@ function BoardPage() {
           onDragEnd={handleDragEnd}
           collisionDetection={closestCenter}
           sensors={sensors}
+          modifiers={[restrictToWindowEdges]}
         >
           <div className="mx-auto flex space-x-2.5">
             {statusColumns.map((status) => (
@@ -76,5 +130,28 @@ function BoardPage() {
     </div>
   );
 }
+
+const CreateTaskButton = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>
+        <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-50 cursor-pointer rounded-md">
+          <FaPlus />
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Are you absolutely sure?</DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. This will permanently delete your
+            account and remove your data from our servers.
+          </DialogDescription>
+          <TaskForm />
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default BoardPage;
