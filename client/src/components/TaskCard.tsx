@@ -6,16 +6,12 @@ import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import React from "react";
 import { CgDetailsMore } from "react-icons/cg";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import TaskForm from "./TaskForm";
 
 function TaskCard({ task }: { task: ITask }) {
+  const [open, setOpen] = React.useState(false);
+
   const { setNodeRef, transform, listeners, attributes, isDragging } =
     useDraggable({
       id: task._id,
@@ -30,7 +26,7 @@ function TaskCard({ task }: { task: ITask }) {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="w-full">
         <div
           ref={setNodeRef}
@@ -66,15 +62,7 @@ function TaskCard({ task }: { task: ITask }) {
           </div>
         </div>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </DialogDescription>
-        </DialogHeader>
-      </DialogContent>
+      <TaskForm setOpen={setOpen} initialState={task} />
     </Dialog>
   );
 }

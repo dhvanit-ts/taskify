@@ -10,7 +10,6 @@ import {
   closestCenter,
   DndContext,
   DragEndEvent,
-  DragStartEvent,
   KeyboardSensor,
   MouseSensor,
   Over,
@@ -23,24 +22,13 @@ import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import axios from "axios";
 import React, { useState } from "react";
 import { IoSearch } from "react-icons/io5";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import TaskForm from "@/components/TaskForm";
 import { FaPlus } from "react-icons/fa6";
 
 function BoardPage() {
   const moveTodo = useTodoStore((s) => s.moveTodo);
   const todos = useTodoStore((s) => s.todos);
-
-  const handleDragStart = (e: DragStartEvent) => {
-    // console.log(e);
-  };
 
   const handleDragEndApi = async (active: Active, over: Over) => {
     try {
@@ -112,7 +100,6 @@ function BoardPage() {
       </div>
       <div className="h-[calc(100%-3.25rem)] flex rounded-md bg-zinc-200 p-2.5">
         <DndContext
-          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           collisionDetection={closestCenter}
           sensors={sensors}
@@ -135,21 +122,12 @@ const CreateTaskButton = () => {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-50 cursor-pointer rounded-md">
           <FaPlus />
         </button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </DialogDescription>
-          <TaskForm />
-        </DialogHeader>
-      </DialogContent>
+      <TaskForm setOpen={setOpen} />
     </Dialog>
   );
 };
