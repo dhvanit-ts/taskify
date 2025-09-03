@@ -75,7 +75,7 @@ export const googleCallback = async (req: Request, res: Response) => {
 
     if (existingUser) {
       const { accessToken, refreshToken } =
-        await userService.generateAccessAndRefreshToken(existingUser._id, req);
+        await userService.generateAccessAndRefreshToken(existingUser._id);
 
       return res
         .status(200)
@@ -117,7 +117,7 @@ export const handleUserOAuth = async (req: Request, res: Response) => {
     if (!createdUser) throw new ApiError(500, "Failed to create user");
 
     const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshToken(createdUser._id, req);
+      await userService.generateAccessAndRefreshToken(createdUser._id);
 
     if (!accessToken || !refreshToken) {
       res
@@ -221,7 +221,7 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 
     const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshToken(createdUser._id, req);
+      await userService.generateAccessAndRefreshToken(createdUser._id);
 
     if (!accessToken || !refreshToken) {
       res
@@ -281,7 +281,7 @@ export const loginUser = async (req: Request, res: Response) => {
       throw new ApiError(400, "Invalid password");
 
     const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshToken(existingUser._id, req);
+      await userService.generateAccessAndRefreshToken(existingUser._id);
 
     if (!accessToken || !refreshToken) {
       res
@@ -471,7 +471,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     if (!user) throw new ApiError(400, "User not found");
 
     const { accessToken, refreshToken } =
-      await userService.generateAccessAndRefreshToken(user._id, req);
+      await userService.generateAccessAndRefreshToken(user._id);
 
     user.refreshToken = refreshToken;
     user.password = storedPassword;
@@ -527,8 +527,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     const { accessToken, refreshToken } =
       await userService.generateAccessAndRefreshToken(
-        user._id as mongoose.Types.ObjectId,
-        req
+        user._id as mongoose.Types.ObjectId
       );
 
     user.refreshToken = refreshToken;
@@ -566,7 +565,10 @@ export const sendOtp = async (req: Request, res: Response) => {
       throw new ApiError(500, mailResponse.error || "Failed to send OTP");
     if (!mailResponse.otpCode) throw new ApiError(500, "Failed to send OTP");
 
-    const response = nodeCache.set(`otp:${email}`, mailResponse.otpCode, 65);
+    const hashedOTP = await hashOTP(mailResponse.otpCode);
+    if (!hashedOTP) throw new ApiError(500, "Failed to encrypt OTP");
+
+    const response = nodeCache.set(`otp:${email}`, hashedOTP, 65);
 
     if (!response) {
       console.error("Failed to set OTP in Redis:", res);

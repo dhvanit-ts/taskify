@@ -14,6 +14,8 @@ class UserService {
     sameSite: "none" | "lax";
     domain: string;
   } = null;
+  adminAccessTokenExpiry =
+    60 * 1000 * parseInt(env.ADMIN_ACCESS_TOKEN_EXPIRY || "0");
   accessTokenExpiry = 60 * 1000 * parseInt(env.ACCESS_TOKEN_EXPIRY || "0"); // In minutes
   refreshTokenExpiry =
     60 * 60 * 1000 * 24 * parseInt(env.REFRESH_TOKEN_EXPIRY || "0"); // In days
@@ -33,37 +35,15 @@ class UserService {
     };
   }
 
-  async generateUuidBasedUsername(
-    isUsernameTaken: (username: string) => Promise<boolean>,
-    length = 12
-  ) {
-    const maxTries = 20;
-
-    for (let i = 0; i < maxTries; i++) {
-      const uuid = randomUUID().replace(/-/g, "").slice(0, length);
-
-      const exists = await isUsernameTaken(uuid);
-      if (!exists) {
-        return uuid;
-      }
-    }
-
-    // Fallback username in case of failure
-    const fallbackUsername = `User${Date.now()}${Math.floor(
-      Math.random() * 1000
-    )}`;
-    return fallbackUsername;
-  }
-
-  generateAccessToken(id: string, username: string) {
+  generateAccessToken(id: string, username: string, isAdmin: boolean = false) {
     return jwt.sign(
       {
         id,
         username,
       },
-      env.ACCESS_TOKEN_SECRET,
+      isAdmin ? env.ADMIN_ACCESS_TOKEN_SECRET : env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: `${parseInt(env.ACCESS_TOKEN_EXPIRY || "0")}m`,
+        expiresIn: `${parseInt(isAdmin ? env.ADMIN_ACCESS_TOKEN_EXPIRY :  env.ACCESS_TOKEN_EXPIRY || "0")}m`,
       }
     );
   }
@@ -81,14 +61,24 @@ class UserService {
     );
   }
 
-  async generateAccessAndRefreshToken(userId: Types.ObjectId, req: Request) {
+  async generateAccessAndRefreshToken(
+    userId: Types.ObjectId,
+    isAdmin: boolean = false
+  ) {
     try {
       const user = (await User.findById(userId)) as IUser | null;
 
       if (!user) throw new ApiError(404, "User not found");
 
-      const accessToken = this.generateAccessToken(user._id, user.username);
-      const refreshToken = this.generateRefreshToken(user._id, user.username);
+      const accessToken = this.generateAccessToken(
+        user._id.toString(),
+        user.username,
+        isAdmin
+      );
+      const refreshToken = this.generateRefreshToken(
+        user._id.toString(),
+        user.username
+      );
 
       user.refreshToken = refreshToken;
 

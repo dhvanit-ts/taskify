@@ -1,7 +1,7 @@
 import useTodoStore from "@/store/taskStore";
 import React from "react";
-import TaskCard from "./TaskCard";
 import { TStatus } from "@/types/ITask";
+import TaskCard from "./TaskCard";
 
 function TaskList({ status }: { status: TStatus }) {
   const todos = useTodoStore((s) => s.todos).filter(

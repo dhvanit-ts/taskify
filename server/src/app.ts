@@ -8,6 +8,7 @@ import http from "http";
 import healthRouter from "./routes/health.route";
 import userRouter from "./routes/user.routes";
 import taskRouter from "./routes/task.route";
+import boardRouter from "./routes/board.route";
 
 const app = express();
 const server = http.createServer(app);
@@ -41,5 +42,6 @@ io.on("connection", (socket) => {
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/tasks", taskRouter);
+app.use("/api/v1/boards", boardRouter);
 
 export default server;

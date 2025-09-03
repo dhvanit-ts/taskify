@@ -6,7 +6,7 @@ import { toObjectId } from "../utils/toObjectId";
 
 const createTask = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { title, description, priority, status, dueDate, assignedTo } =
+    const { title, description, priority, status, dueDate, assignedTo, board } =
       req.body;
 
     if (!title)
@@ -19,6 +19,7 @@ const createTask = AsyncHandler(
       description: description ?? "",
       priority: priority ?? "low",
       status: status ?? "to-do",
+      board,
     };
 
     if (dueDate) task.dueDate = new Date(dueDate);
@@ -43,7 +44,7 @@ const updateTask = AsyncHandler(
 
     if (!id) throw new ApiResponse(400, {}, "Task id is required");
 
-    const { title, description, priority, status, dueDate, assignedTo } =
+    const { title, description, priority, status, dueDate, assignedTo, board } =
       req.body;
 
     if (!title)
@@ -56,14 +57,19 @@ const updateTask = AsyncHandler(
       description: description ?? "",
       priority: priority ?? "low",
       status: status ?? "to-do",
+      board,
     };
 
     if (dueDate) task.dueDate = new Date(dueDate);
     if (assignedTo) task.assignedTo = assignedTo;
 
-    const updatedTask = await taskModel.findByIdAndUpdate(toObjectId(id), task, {
-      new: true,
-    });
+    const updatedTask = await taskModel.findByIdAndUpdate(
+      toObjectId(id),
+      task,
+      {
+        new: true,
+      }
+    );
 
     if (!updatedTask)
       return res
@@ -76,4 +82,19 @@ const updateTask = AsyncHandler(
   }
 );
 
-export { createTask, updateTask };
+const getTodosById = AsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    if (!id) throw new ApiResponse(400, {}, "Task id is required");
+
+    const tasks = await taskModel.find({
+      board: toObjectId(id),
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, tasks, "Tasks fetched successfully!"));
+  }
+);
+
+export { createTask, updateTask, getTodosById };

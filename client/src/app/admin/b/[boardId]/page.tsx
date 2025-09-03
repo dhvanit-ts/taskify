@@ -1,8 +1,8 @@
 "use client";
 
-import BoardNameList from "@/components/BoardNameList";
-import TaskColumn from "@/components/TaskColumn";
-import TaskList from "@/components/TaskList";
+import BoardNameList from "@/components/general/BoardNameList";
+import TaskColumn from "@/components/general/TaskColumn";
+import TaskList from "@/components/general/TaskList";
 import statusColumns from "@/constants/statusColumns";
 import useTodoStore from "@/store/taskStore";
 import {
@@ -20,15 +20,19 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { IoSearch } from "react-icons/io5";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import TaskForm from "@/components/TaskForm";
+import TaskForm from "@/components/forms/TaskForm";
 import { FaPlus } from "react-icons/fa6";
+import { toast } from "sonner";
+import { useParams } from "next/navigation";
 
 function BoardPage() {
   const moveTodo = useTodoStore((s) => s.moveTodo);
+  const setTodos = useTodoStore((s) => s.setTodos);
   const todos = useTodoStore((s) => s.todos);
+
+  const { boardId } = useParams<{ boardId: string }>();
 
   const handleDragEndApi = async (active: Active, over: Over) => {
     try {
@@ -53,6 +57,28 @@ function BoardPage() {
       return false;
     }
   };
+
+  const fetchTodos = useCallback(async () => {
+    try {
+      if (!boardId) return;
+
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tasks/board/${boardId}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (res.status !== 200) {
+        toast.error("Failed to fetch tasks");
+        return;
+      }
+
+      setTodos(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [boardId, setTodos]);
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
@@ -81,6 +107,10 @@ function BoardPage() {
     })
   );
 
+  useEffect(() => {
+    fetchTodos();
+  }, [fetchTodos]);
+
   return (
     <div className="max-h-screen h-screen space-y-2 p-4 bg-zinc-50">
       <div className="w-full h-10 rounded-md flex justify-between items-center bg-zinc-200 text-zinc-900 font-semibold px-3 py-1.5">
@@ -94,7 +124,11 @@ function BoardPage() {
               placeholder="Search for tasks..."
             />
           </div>
-          <CreateTaskButton />
+          <TaskForm>
+            <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-50 cursor-pointer rounded-md">
+              <FaPlus />
+            </button>
+          </TaskForm>
         </div>
         <div></div>
       </div>
@@ -117,19 +151,5 @@ function BoardPage() {
     </div>
   );
 }
-
-const CreateTaskButton = () => {
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-50 cursor-pointer rounded-md">
-          <FaPlus />
-        </button>
-      </DialogTrigger>
-      <TaskForm setOpen={setOpen} />
-    </Dialog>
-  );
-};
 
 export default BoardPage;
