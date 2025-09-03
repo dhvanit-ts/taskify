@@ -17,10 +17,6 @@ const adminSchema = new mongoose.Schema(
       required: true,
       default: null,
     },
-    refreshToken: {
-      type: String,
-      default: null,
-    },
   },
   { timestamps: true }
 );
@@ -46,18 +42,6 @@ adminSchema.methods.generateAccessToken = function () {
     env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: `${parseInt(env.ACCESS_TOKEN_EXPIRY)}m`,
-    }
-  );
-};
-
-adminSchema.methods.generateRefreshToken = function () {
-  return jwt.sign(
-    {
-      _id: this._id,
-    },
-    env.REFRESH_TOKEN_SECRET,
-    {
-      expiresIn: `${parseInt(env.REFRESH_TOKEN_EXPIRY)}d`,
     }
   );
 };

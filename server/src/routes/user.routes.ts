@@ -11,6 +11,7 @@ import {
   googleCallback,
   handleUserOAuth,
   updateUser,
+  searchUsers,
 } from "../controllers/user.controller";
 import { verifyUserJWT } from "../middlewares/auth.middleware";
 
@@ -27,5 +28,6 @@ router.route("/otp/send").post(sendOtp);
 router.route("/otp/verify").post(verifyOtp);
 router.route("/google/callback").get(googleCallback);
 router.route("/oauth").post(handleUserOAuth);
+router.route("/search/:search").get(searchUsers);
 
 export default router;

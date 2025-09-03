@@ -76,14 +76,14 @@ const verifyAdminJWT = async (
         "Admin access token secret not found",
         "UNAUTHORIZED"
       );
-
-    const decodedToken = jwt.verify(
-      token,
-      env.ADMIN_ACCESS_TOKEN_SECRET
-    ) as JwtPayload;
-
-    const admin = await Admin.findById(decodedToken?._id)
-      .select("-password")
+      
+      const decodedToken = jwt.verify(
+        token,
+        env.ADMIN_ACCESS_TOKEN_SECRET
+      ) as JwtPayload;
+    
+    const admin = await Admin.findById(toObjectId(decodedToken?.id))
+    .select("-password")
       .lean();
 
     if (!admin) {

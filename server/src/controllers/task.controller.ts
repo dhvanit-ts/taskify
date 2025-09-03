@@ -82,7 +82,7 @@ const updateTask = AsyncHandler(
   }
 );
 
-const getTodosById = AsyncHandler(
+const getTodosByBoardId = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
     if (!id) throw new ApiResponse(400, {}, "Task id is required");
@@ -97,4 +97,4 @@ const getTodosById = AsyncHandler(
   }
 );
 
-export { createTask, updateTask, getTodosById };
+export { createTask, updateTask, getTodosByBoardId };

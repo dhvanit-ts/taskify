@@ -78,7 +78,7 @@ export const loginAdmin = async (req: Request, res: Response) => {
       throw new ApiError(400, "Invalid password");
 
     const { accessToken } =
-      await userService.generateAccessAndRefreshToken(existingUser._id);
+      await userService.generateAccessAndRefreshToken(existingUser._id, true);
 
     if (!accessToken) {
       res

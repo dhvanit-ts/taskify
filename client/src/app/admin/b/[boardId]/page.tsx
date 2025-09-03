@@ -20,14 +20,17 @@ import {
 } from "@dnd-kit/core";
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import axios from "axios";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { IoSearch } from "react-icons/io5";
 import TaskForm from "@/components/forms/TaskForm";
 import { FaPlus } from "react-icons/fa6";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import { TaskListSkeleton } from "@/components/skeletons/TaskCardSkeleton";
 
 function BoardPage() {
+  const [loading, setLoading] = useState(true);
+
   const moveTodo = useTodoStore((s) => s.moveTodo);
   const setTodos = useTodoStore((s) => s.setTodos);
   const todos = useTodoStore((s) => s.todos);
@@ -61,6 +64,7 @@ function BoardPage() {
   const fetchTodos = useCallback(async () => {
     try {
       if (!boardId) return;
+      setLoading(true);
 
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/tasks/board/${boardId}`,
@@ -74,9 +78,11 @@ function BoardPage() {
         return;
       }
 
-      setTodos(res.data);
+      setTodos(res.data.data);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   }, [boardId, setTodos]);
 
@@ -112,20 +118,22 @@ function BoardPage() {
   }, [fetchTodos]);
 
   return (
-    <div className="max-h-screen h-screen space-y-2 p-4 bg-zinc-50">
-      <div className="w-full h-10 rounded-md flex justify-between items-center bg-zinc-200 text-zinc-900 font-semibold px-3 py-1.5">
+    <div className="max-h-screen h-screen space-y-2 p-4 bg-zinc-300">
+      <div className="w-full h-10 rounded-md flex justify-between items-center bg-zinc-900 text-zinc-200 font-semibold px-3 py-1.5">
         <BoardNameList />
         <div className="flex space-x-1">
-          <div className="bg-zinc-100 rounded-md flex items-center space-x-2 pl-2">
+          <div className="bg-zinc-700 text-zinc-100 rounded-md flex items-center space-x-2 pl-2">
             <IoSearch className="text-zinc-400" />
             <input
+              readOnly
+              disabled
               type="text"
               className="w-72 pr-2 py-1 rounded-md outline-0"
               placeholder="Search for tasks..."
             />
           </div>
           <TaskForm>
-            <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-50 cursor-pointer rounded-md">
+            <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-200 cursor-pointer rounded-md">
               <FaPlus />
             </button>
           </TaskForm>
@@ -142,7 +150,11 @@ function BoardPage() {
           <div className="mx-auto flex space-x-2.5">
             {statusColumns.map((status) => (
               <TaskColumn key={status.id} title={status.title} id={status.id}>
-                <TaskList status={status.id} />
+                {loading ? (
+                  <TaskListSkeleton length={3} />
+                ) : (
+                  <TaskList status={status.id} />
+                )}
               </TaskColumn>
             ))}
           </div>

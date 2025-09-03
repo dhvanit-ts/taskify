@@ -43,6 +43,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import axios from "axios";
 import { ITask } from "@/types/ITask";
 import { useParams } from "next/navigation";
+import useBoardStore from "@/store/boardStore";
+import useTodoStore from "@/store/taskStore";
 
 const formSchema = z.object({
   title: z
@@ -72,13 +74,32 @@ function TaskForm({
 
   const { boardId } = useParams<{ boardId: string }>();
 
+  const addTodo = useTodoStore((s) => s.addTodo);
+  const updateTodo = useTodoStore((s) => s.updateTodo);
+  const boards = useBoardStore((state) => state.boards);
+  const currentBoardMembers = boards.find(
+    (board) => board._id === boardId
+  )?.members;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      ...initialState,
-      priority: initialState?.priority ?? "low",
-      status: initialState?.status ?? "to-do",
-    },
+    defaultValues: initialState
+      ? {
+          priority: initialState.priority ?? "low",
+          status: initialState.status ?? "to-do",
+          title: initialState.title,
+          ...(initialState.assignedTo
+            ? { assignedTo: initialState.assignedTo }
+            : {}),
+          ...(initialState.dueDate ? { dueDate: initialState.dueDate } : {}),
+          ...(initialState.description
+            ? { description: initialState.description }
+            : {}),
+        }
+      : {
+          priority: "low",
+          status: "to-do",
+        },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -87,13 +108,24 @@ function TaskForm({
 
       const endpoint = initialState ? `update/${initialState._id}` : `create`;
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/tasks/${endpoint}`,
-        { ...data, board: boardId },
-        {
+      const payload = {
+        url: `${process.env.NEXT_PUBLIC_API_URL}/tasks/${endpoint}`,
+        data: { ...data, board: boardId },
+        options: {
           withCredentials: true,
-        }
-      );
+        },
+      };
+
+      let response = null;
+      if (initialState) {
+        response = await axios.patch(
+          payload.url,
+          payload.data,
+          payload.options
+        );
+      } else {
+        response = await axios.post(payload.url, payload.data, payload.options);
+      }
 
       if (response.status !== 201 && response.status !== 200) {
         console.error(`Failed to ${initialState ? "update" : "create"} task`);
@@ -104,6 +136,10 @@ function TaskForm({
         `Task ${initialState ? "updated" : "created"} successfully`
       );
       setOpen(false);
+      if (response.data.data) {
+        if (initialState) updateTodo(initialState._id, response.data.data);
+        else addTodo(response.data.data);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -233,25 +269,25 @@ function TaskForm({
                 name="assignedTo"
                 render={({ field }) => (
                   <FormItem>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Assigned to" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="m@example.com">
-                          m@example.com
-                        </SelectItem>
-                        <SelectItem value="m@google.com">
-                          m@google.com
-                        </SelectItem>
-                        <SelectItem value="m@support.com">
-                          m@support.com
-                        </SelectItem>
+                        {currentBoardMembers &&
+                        currentBoardMembers?.length > 0 ? (
+                          currentBoardMembers.map((member) => (
+                            <SelectItem key={member.email} value={member.email}>
+                              {member.email}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="h-30 flex items-center justify-center">
+                            <p>No members found</p>
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                   </FormItem>
@@ -303,10 +339,12 @@ function TaskForm({
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin" />
-                  <span>Submitting</span>
+                  <span>{initialState ? "Updating" : "Creating"}</span>
                 </>
+              ) : initialState ? (
+                "Update"
               ) : (
-                "Submit"
+                "Create"
               )}
             </Button>
           </form>

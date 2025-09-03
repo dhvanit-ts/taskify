@@ -47,15 +47,25 @@ function TaskCard({ task }: { task: ITask }) {
         </div>
         <h1 className="font-semibold text-start">{task.title}</h1>
         <div className="flex space-x-1">
-          <span className="text-xs bg-amber-400 text-zinc-900 px-2 py-1 rounded-full">
-            {task.dueDate.toLocaleDateString()}
-          </span>
-          <span className="font-semibold text-xs bg-green-500 text-zinc-900 aspect-square h-6 w-6 flex justify-center items-center rounded-full">
-            {task.assignedTo.slice(0, 1).toUpperCase()}
-          </span>
-          <span className="text-xs bg-zinc-300 text-zinc-900 flex justify-center items-center px-2 py-1 rounded-full">
-            <CgDetailsMore />
-          </span>
+          {task.dueDate && (
+            <span className="text-xs bg-amber-400 text-zinc-900 px-2 py-1 rounded-full">
+              {new Date(task.dueDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          )}
+          {task.assignedTo && (
+            <span className="font-semibold text-xs bg-green-500 text-zinc-900 aspect-square h-6 w-6 flex justify-center items-center rounded-full">
+              {task.assignedTo.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+          {task.description && (
+            <span className="text-xs bg-zinc-300 text-zinc-900 flex justify-center items-center px-2 py-1 rounded-full">
+              <CgDetailsMore />
+            </span>
+          )}
         </div>
       </div>
     </TaskForm>

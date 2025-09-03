@@ -10,6 +10,7 @@ const boardSchema = new mongoose.Schema(
     admin: {
       type: Schema.Types.ObjectId,
       ref: "Admin",
+      require: true,
       index: true,
     },
     members: [

@@ -25,27 +25,37 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import axios from "axios";
 import { IBoard } from "@/types/IBoard";
+import MultipleSelector from "../ui/multiselect";
+import useBoardStore from "@/store/boardStore";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+  selectedMembers: z.array(z.object({ value: z.string(), label: z.string() })),
 });
 
 function BoardForm({
   initialState,
   boardId,
   children,
+  openForm,
+  setOpenForm,
 }: {
   initialState?: IBoard;
-  boardId: string;
-  children: React.ReactNode;
+  boardId?: string;
+  children?: React.ReactNode;
+  openForm?: boolean;
+  setOpenForm?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const addBoard = useBoardStore((s) => s.addBoard);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       ...initialState,
+      name: initialState?.name ?? "",
     },
   });
 
@@ -55,9 +65,11 @@ function BoardForm({
 
       const endpoint = initialState ? `update/${initialState._id}` : `create`;
 
+      const members = data.selectedMembers.map((member) => member.value);
+
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/boards/${endpoint}`,
-        { ...data, board: boardId },
+        { name: data.name, members, board: boardId },
         {
           withCredentials: true,
         }
@@ -69,9 +81,11 @@ function BoardForm({
       }
 
       toast.success(
-        `Task ${initialState ? "updated" : "created"} successfully`
+        `Board ${initialState ? "updated" : "created"} successfully`
       );
       setOpen(false);
+      if (setOpenForm) setOpenForm(false);
+      if(response.data.data) addBoard(response.data.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -80,14 +94,14 @@ function BoardForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={openForm ?? open} onOpenChange={setOpenForm ?? setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-xs text-zinc-500">TASK</DialogTitle>
+          <DialogTitle className="text-xs text-zinc-500">BOARD</DialogTitle>
           <VisuallyHidden>
             <DialogDescription>
-              Add/Update task to match your needs.
+              Add/Update board to match your needs.
             </DialogDescription>
           </VisuallyHidden>
         </DialogHeader>
@@ -112,6 +126,21 @@ function BoardForm({
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="selectedMembers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <SelectMembers
+                        onChange={field.onChange}
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             {form.formState.errors.root && (
               <p>{form.formState.errors.root.message}</p>
@@ -120,10 +149,12 @@ function BoardForm({
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin" />
-                  <span>Submitting</span>
+                  <span>{initialState ? "Updating" : "Creating"}</span>
                 </>
               ) : (
-                "Submit"
+                <>
+                  <span>{initialState ? "Update" : "Create"}</span>
+                </>
               )}
             </Button>
           </form>
@@ -132,5 +163,52 @@ function BoardForm({
     </Dialog>
   );
 }
+
+type Option = {
+  value: string;
+  label: string;
+};
+
+const SelectMembers = ({
+  onChange,
+  value,
+}: {
+  onChange: (options: Option[]) => void;
+  value: Option[];
+}) => {
+  const onSearch = async (value: string) => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/search/${value}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (res.status !== 200) {
+        console.error("Failed to fetch users");
+        return [];
+      }
+
+      return res.data.data ?? [];
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  };
+
+  return (
+    <MultipleSelector
+      onChange={onChange}
+      commandProps={{
+        label: "Add members",
+      }}
+      value={value}
+      onSearch={onSearch}
+      placeholder="Add members"
+      emptyIndicator={<p className="text-center text-sm">No results found</p>}
+    />
+  );
+};
 
 export default BoardForm;

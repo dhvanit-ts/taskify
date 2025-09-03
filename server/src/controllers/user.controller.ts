@@ -623,3 +623,30 @@ export const verifyOtp = async (req: Request, res: Response) => {
     );
   }
 };
+
+export const searchUsers = async (req: Request, res: Response)=>{
+  try {
+    
+    const { search } = req.params;
+    const users = await UserModel.find({
+      email: new RegExp(search, "i"),
+    });
+
+    const options = users.map((user) => {
+      return {
+        value: user._id,
+        label: user.email,
+      };
+    });
+
+    res.status(200).json({ message: "Users fetched successfully!", data: options });
+
+  } catch (error) {
+     handleError(
+      error as ApiError,
+      res,
+      "Failed to verify OTP",
+      "VERIFY_OTP_ERROR"
+    );
+  }
+}

@@ -1,11 +1,31 @@
 import { env } from "../conf/env";
-import { randomUUID } from "crypto";
 import { ApiError } from "../utils/ApiHelpers";
-import { Request } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 import { IUser } from "../types/IUser";
-import { Types } from "mongoose";
+import { IAdmin } from "../types/IAdmin";
+import { Document, Types } from "mongoose";
+import adminModel from "../models/admin.model";
+
+type IUserDocument = Document<
+  unknown,
+  {},
+  {
+    createdAt: NativeDate;
+    updatedAt: NativeDate;
+  } & IUser,
+  {},
+  {
+    timestamps: true;
+  }
+> & {
+  createdAt: NativeDate;
+  updatedAt: NativeDate;
+} & IUser & {
+  _id: Types.ObjectId;
+} & {
+  __v: number;
+};
 
 class UserService {
   options: null | {
@@ -43,7 +63,11 @@ class UserService {
       },
       isAdmin ? env.ADMIN_ACCESS_TOKEN_SECRET : env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: `${parseInt(isAdmin ? env.ADMIN_ACCESS_TOKEN_EXPIRY :  env.ACCESS_TOKEN_EXPIRY || "0")}m`,
+        expiresIn: `${parseInt(
+          isAdmin
+            ? env.ADMIN_ACCESS_TOKEN_EXPIRY
+            : env.ACCESS_TOKEN_EXPIRY || "0"
+        )}m`,
       }
     );
   }
@@ -66,9 +90,14 @@ class UserService {
     isAdmin: boolean = false
   ) {
     try {
-      const user = (await User.findById(userId)) as IUser | null;
-
-      if (!user) throw new ApiError(404, "User not found");
+      let user: null | IAdmin | IUserDocument = null;
+      if (isAdmin) {
+        user = (await adminModel.findById(userId)) as IAdmin | null;
+        if (!user) throw new ApiError(404, "Admin not found");
+      } else {
+        user = await User.findById(userId) as IUserDocument | null;
+        if (!user) throw new ApiError(404, "User not found");
+      }
 
       const accessToken = this.generateAccessToken(
         user._id.toString(),
@@ -80,11 +109,10 @@ class UserService {
         user.username
       );
 
-      user.refreshToken = refreshToken;
-
-      await User.findByIdAndUpdate(user._id, {
-        refresh_token: user.refreshToken,
-      });
+      if (typeof user === "object" && user !== null && "refreshToken" in user) {
+        user.refreshToken = refreshToken;
+        await user.save();
+      }
 
       return { accessToken, refreshToken };
     } catch (error) {
