@@ -624,13 +624,39 @@ export const verifyOtp = async (req: Request, res: Response) => {
   }
 };
 
-export const searchUsers = async (req: Request, res: Response)=>{
+export const searchUsers = async (req: Request, res: Response) => {
   try {
-    
     const { search } = req.params;
-    const users = await UserModel.find({
-      email: new RegExp(search, "i"),
-    });
+    const users = await UserModel.aggregate([
+      {
+        $match: {
+          $or: [
+            { email: { $regex: search, $options: "i" } },
+            { username: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          username: 1,
+        },
+      },
+      {
+        $lookup: {
+          from: "boards",
+          localField: "_id",
+          foreignField: "members",
+          as: "members",
+        },
+      },
+      {
+        $match: {
+          members: { $size: 0 },
+        },
+      },
+    ]);
 
     const options = users.map((user) => {
       return {
@@ -639,14 +665,15 @@ export const searchUsers = async (req: Request, res: Response)=>{
       };
     });
 
-    res.status(200).json({ message: "Users fetched successfully!", data: options });
-
+    res
+      .status(200)
+      .json({ message: "Users fetched successfully!", data: options });
   } catch (error) {
-     handleError(
+    handleError(
       error as ApiError,
       res,
       "Failed to verify OTP",
       "VERIFY_OTP_ERROR"
     );
   }
-}
+};

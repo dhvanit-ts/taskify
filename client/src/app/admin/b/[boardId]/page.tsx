@@ -121,10 +121,10 @@ function TasksPage() {
       modifiers={[restrictToWindowEdges]}
     >
       <div className="flex space-x-2.5">
-        {statusColumns.map((status) => (
+        {statusColumns.map((status, index) => (
           <TaskColumn key={status.id} title={status.title} id={status.id}>
             {loading ? (
-              <TaskListSkeleton length={3} />
+              <TaskListSkeleton length={taskColumnSkeletonCards[index]} />
             ) : (
               <TaskList status={status.id} />
             )}
@@ -134,5 +134,7 @@ function TasksPage() {
     </DndContext>
   );
 }
+
+const taskColumnSkeletonCards = [3, 2, 4, 2];
 
 export default TasksPage;

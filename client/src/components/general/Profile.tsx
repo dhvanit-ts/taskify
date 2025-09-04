@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 function Profile() {
   return (
@@ -12,6 +12,10 @@ function Profile() {
         </Avatar>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+            <DialogTitle>Profile</DialogTitle>
+            <DialogContent></DialogContent>
+        </DialogHeader>
         <p>Profile</p>
       </DialogContent>
     </Dialog>
