@@ -15,6 +15,10 @@ const statusColumns: TStatusColumn[] = [
     title: "In Progress",
   },
   {
+    id: "on-review",
+    title: "On Review",
+  },
+  {
     id: "done",
     title: "Done",
   },

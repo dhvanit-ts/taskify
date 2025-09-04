@@ -33,15 +33,19 @@ const formSchema = z.object({
   selectedMembers: z.array(z.object({ value: z.string(), label: z.string() })),
 });
 
+type Fields = "name" | "select-members" | "manage-member";
+
 function BoardForm({
   initialState,
   boardId,
   children,
+  showFields = ["name", "select-members"],
   openForm,
   setOpenForm,
 }: {
   initialState?: IBoard;
   boardId?: string;
+  showFields?: Fields[];
   children?: React.ReactNode;
   openForm?: boolean;
   setOpenForm?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -54,8 +58,13 @@ function BoardForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      ...initialState,
       name: initialState?.name ?? "",
+      selectedMembers: initialState?.members
+        ? initialState.members.map((member) => ({
+            value: member._id,
+            label: member.email,
+          }))
+        : [],
     },
   });
 
@@ -85,7 +94,7 @@ function BoardForm({
       );
       setOpen(false);
       if (setOpenForm) setOpenForm(false);
-      if(response.data.data) addBoard(response.data.data);
+      if (response.data.data) addBoard(response.data.data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -115,6 +124,7 @@ function BoardForm({
                   <FormItem>
                     <FormControl>
                       <input
+                        type={showFields?.includes("name") ? "text" : "hidden"}
                         placeholder="Title"
                         className={
                           "py-1 outline-0 border-b-2 focus:border-zinc-700"
@@ -126,21 +136,39 @@ function BoardForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="selectedMembers"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <SelectMembers
-                        onChange={field.onChange}
-                        value={field.value}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {showFields?.includes("manage-member") ? (
+                <FormField
+                  control={form.control}
+                  name="selectedMembers"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SelectMembers
+                          onChange={field.onChange}
+                          value={field.value}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="selectedMembers"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SelectMembers
+                          onChange={field.onChange}
+                          value={field.value}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
             {form.formState.errors.root && (
               <p>{form.formState.errors.root.message}</p>
@@ -203,6 +231,7 @@ const SelectMembers = ({
       commandProps={{
         label: "Add members",
       }}
+      className="focus-within:ring-0 focus-within:border-x-0 focus-within:border-t-0 border-b-2 rounded-none focus-visible:border-zinc-900"
       value={value}
       onSearch={onSearch}
       placeholder="Add members"

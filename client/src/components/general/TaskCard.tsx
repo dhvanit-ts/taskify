@@ -45,7 +45,7 @@ function TaskCard({ task }: { task: ITask }) {
             )}
           ></span>
         </div>
-        <h1 className="font-semibold text-start">{task.title}</h1>
+        <h1 className="font-semibold text-start truncate">{task.title}</h1>
         <div className="flex space-x-1">
           {task.dueDate && (
             <span className="text-xs bg-amber-400 text-zinc-900 px-2 py-1 rounded-full">

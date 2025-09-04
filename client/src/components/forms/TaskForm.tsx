@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { TbProgress, TbProgressBolt, TbProgressCheck } from "react-icons/tb";
+import { TbProgress, TbProgressAlert, TbProgressBolt, TbProgressCheck } from "react-icons/tb";
 import {
   Form,
   FormControl,
@@ -41,7 +41,7 @@ import {
 } from "../ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import axios from "axios";
-import { ITask } from "@/types/ITask";
+import { ITask, TStatus } from "@/types/ITask";
 import { useParams } from "next/navigation";
 import useBoardStore from "@/store/boardStore";
 import useTodoStore from "@/store/taskStore";
@@ -57,15 +57,17 @@ const formSchema = z.object({
     .max(100, "Description must be at most 100 characters")
     .optional(),
   priority: z.enum(["high", "medium", "low"]),
-  status: z.enum(["to-do", "in-progress", "done"]),
+  status: z.enum(["to-do", "in-progress", "on-review", "done"]),
   dueDate: z.date().optional(),
   assignedTo: z.string().optional(),
 });
 
 function TaskForm({
+  defaultStatus = "to-do",
   initialState,
   children,
 }: {
+  defaultStatus?: TStatus
   initialState?: ITask;
   children: React.ReactNode;
 }) {
@@ -86,7 +88,7 @@ function TaskForm({
     defaultValues: initialState
       ? {
           priority: initialState.priority ?? "low",
-          status: initialState.status ?? "to-do",
+          status: initialState.status ?? defaultStatus ?? "to-do",
           title: initialState.title,
           ...(initialState.assignedTo
             ? { assignedTo: initialState.assignedTo }
@@ -98,7 +100,7 @@ function TaskForm({
         }
       : {
           priority: "low",
-          status: "to-do",
+          status: defaultStatus ?? "to-do",
         },
   });
 
@@ -241,7 +243,7 @@ function TaskForm({
                   <FormItem>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value ?? "to-do"}
+                      defaultValue={field.value ?? defaultStatus ?? "to-do"}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -252,6 +254,7 @@ function TaskForm({
                         {[
                           { value: "to-do", icon: <TbProgress /> },
                           { value: "in-progress", icon: <TbProgressBolt /> },
+                          { value: "on-review", icon: <TbProgressAlert /> },
                           { value: "done", icon: <TbProgressCheck /> },
                         ].map((status) => (
                           <SelectItem key={status.value} value={status.value}>

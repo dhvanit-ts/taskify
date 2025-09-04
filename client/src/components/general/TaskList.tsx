@@ -13,7 +13,7 @@ function TaskList({ status }: { status: TStatus }) {
       {todos.length > 0 ? (
         todos.map((todo) => <TaskCard key={todo._id} task={todo} />)
       ) : (
-        <div className="flex justify-center items-center h-60 bg-zinc-100/60 rounded-md">
+        <div className="flex justify-center items-center h-60 shadow bg-zinc-100/60 rounded-md">
           <p className="text-xs text-zinc-400">Column is empty</p>
         </div>
       )}

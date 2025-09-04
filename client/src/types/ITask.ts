@@ -1,7 +1,7 @@
 import { IBoard } from "./IBoard";
 
 export type TPriority = "high" | "medium" | "low";
-export type TStatus = "to-do" | "in-progress" | "done";
+export type TStatus = "to-do" | "in-progress" | "on-review" | "done";
 
 export interface ITask {
   _id: string;

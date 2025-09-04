@@ -508,7 +508,7 @@ const MultipleSelector = ({
               "placeholder:text-muted-foreground/70 flex-1 bg-transparent outline-hidden disabled:cursor-not-allowed",
               {
                 "w-full": hidePlaceholderWhenSelected,
-                "px-3 py-2": selected.length === 0,
+                "p-1": selected.length === 0,
                 "ml-1": selected.length !== 0,
               },
               inputProps?.className

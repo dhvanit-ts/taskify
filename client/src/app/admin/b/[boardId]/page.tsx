@@ -1,10 +1,6 @@
 "use client";
 
-import BoardNameList from "@/components/general/BoardNameList";
-import TaskColumn from "@/components/general/TaskColumn";
-import TaskList from "@/components/general/TaskList";
-import statusColumns from "@/constants/statusColumns";
-import useTodoStore from "@/store/taskStore";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Active,
   closestCenter,
@@ -18,17 +14,17 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { restrictToWindowEdges } from "@dnd-kit/modifiers";
-import axios from "axios";
-import React, { useCallback, useEffect, useState } from "react";
-import { IoSearch } from "react-icons/io5";
-import TaskForm from "@/components/forms/TaskForm";
-import { FaPlus } from "react-icons/fa6";
-import { toast } from "sonner";
+import useTodoStore from "@/store/taskStore";
 import { useParams } from "next/navigation";
+import axios from "axios";
+import { toast } from "sonner";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import statusColumns from "@/constants/statusColumns";
+import TaskColumn from "@/components/general/TaskColumn";
 import { TaskListSkeleton } from "@/components/skeletons/TaskCardSkeleton";
+import TaskList from "@/components/general/TaskList";
 
-function BoardPage() {
+function TasksPage() {
   const [loading, setLoading] = useState(true);
 
   const moveTodo = useTodoStore((s) => s.moveTodo);
@@ -118,50 +114,25 @@ function BoardPage() {
   }, [fetchTodos]);
 
   return (
-    <div className="max-h-screen h-screen space-y-2 p-4 bg-zinc-300">
-      <div className="w-full h-10 rounded-md flex justify-between items-center bg-zinc-900 text-zinc-200 font-semibold px-3 py-1.5">
-        <BoardNameList />
-        <div className="flex space-x-1">
-          <div className="bg-zinc-700 text-zinc-100 rounded-md flex items-center space-x-2 pl-2">
-            <IoSearch className="text-zinc-400" />
-            <input
-              readOnly
-              disabled
-              type="text"
-              className="w-72 pr-2 py-1 rounded-md outline-0"
-              placeholder="Search for tasks..."
-            />
-          </div>
-          <TaskForm>
-            <button className="p-2 bg-zinc-100 text-zinc-500 hover:bg-zinc-200 cursor-pointer rounded-md">
-              <FaPlus />
-            </button>
-          </TaskForm>
-        </div>
-        <div></div>
+    <DndContext
+      onDragEnd={handleDragEnd}
+      collisionDetection={closestCenter}
+      sensors={sensors}
+      modifiers={[restrictToWindowEdges]}
+    >
+      <div className="flex space-x-2.5">
+        {statusColumns.map((status) => (
+          <TaskColumn key={status.id} title={status.title} id={status.id}>
+            {loading ? (
+              <TaskListSkeleton length={3} />
+            ) : (
+              <TaskList status={status.id} />
+            )}
+          </TaskColumn>
+        ))}
       </div>
-      <div className="h-[calc(100%-3.25rem)] flex rounded-md bg-zinc-200 p-2.5">
-        <DndContext
-          onDragEnd={handleDragEnd}
-          collisionDetection={closestCenter}
-          sensors={sensors}
-          modifiers={[restrictToWindowEdges]}
-        >
-          <div className="mx-auto flex space-x-2.5">
-            {statusColumns.map((status) => (
-              <TaskColumn key={status.id} title={status.title} id={status.id}>
-                {loading ? (
-                  <TaskListSkeleton length={3} />
-                ) : (
-                  <TaskList status={status.id} />
-                )}
-              </TaskColumn>
-            ))}
-          </div>
-        </DndContext>
-      </div>
-    </div>
+    </DndContext>
   );
 }
 
-export default BoardPage;
+export default TasksPage;
