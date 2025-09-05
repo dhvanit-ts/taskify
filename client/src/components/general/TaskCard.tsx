@@ -31,8 +31,8 @@ function TaskCard({ task }: { task: ITask }) {
         style={style}
         onClick={(d) => d}
         className={clsx(
-          "bg-zinc-100 text-zinc-900 shadow-lg w-full rounded-md overflow-hidden p-3 group/card border-2 border-zinc-100 hover:border-main transition-all duration-100 space-y-3",
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+          "bg-zinc-100 text-zinc-900 shadow-lg z-40 w-full rounded-md overflow-hidden p-3 group/card border-2 border-zinc-100 hover:border-zinc-400 transition-all duration-100 space-y-3",
+          isDragging ? "cursor-grabbing border-zinc-400" : "cursor-grab"
         )}
       >
         <div className="h-3 mb-2 flex items-center">

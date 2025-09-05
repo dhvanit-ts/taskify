@@ -8,15 +8,19 @@ import {
   CommandList,
 } from "../ui/command";
 import { IoSearch } from "react-icons/io5";
+import { cn } from "@/lib/utils";
 
-function GlobalSearch() {
+function GlobalSearch({ className }: { className?: string }) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="bg-zinc-700 text-zinc-100 h-8 rounded-md w-full flex items-center space-x-2 pl-2"
+        className={cn(
+          "bg-zinc-700 text-zinc-100 h-8 rounded-md w-full flex items-center space-x-2 pl-2",
+          className
+        )}
       >
         <IoSearch className="text-zinc-400" />
         <div className="w-full pr-2 py-1 rounded-md text-sm text-start outline-0 text-zinc-400 truncate">

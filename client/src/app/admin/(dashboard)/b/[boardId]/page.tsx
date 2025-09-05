@@ -114,24 +114,26 @@ function TasksPage() {
   }, [fetchTodos]);
 
   return (
-    <DndContext
-      onDragEnd={handleDragEnd}
-      collisionDetection={closestCenter}
-      sensors={sensors}
-      modifiers={[restrictToWindowEdges]}
-    >
-      <div className="flex space-x-2.5">
-        {statusColumns.map((status, index) => (
-          <TaskColumn key={status.id} title={status.title} id={status.id}>
-            {loading ? (
-              <TaskListSkeleton length={taskColumnSkeletonCards[index]} />
-            ) : (
-              <TaskList status={status.id} />
-            )}
-          </TaskColumn>
-        ))}
-      </div>
-    </DndContext>
+    <div className="flex">
+      <DndContext
+        onDragEnd={handleDragEnd}
+        collisionDetection={closestCenter}
+        sensors={sensors}
+        modifiers={[restrictToWindowEdges]}
+      >
+        <div className="flex space-x-2.5">
+          {statusColumns.map((status, index) => (
+            <TaskColumn key={status.id} title={status.title} id={status.id}>
+              {loading ? (
+                <TaskListSkeleton length={taskColumnSkeletonCards[index]} />
+              ) : (
+                <TaskList status={status.id} />
+              )}
+            </TaskColumn>
+          ))}
+        </div>
+      </DndContext>
+    </div>
   );
 }
 

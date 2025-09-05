@@ -8,27 +8,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TStatus } from "@/types/ITask";
 import React from "react";
-import { FaFilter, FaPlus } from "react-icons/fa6";
-import { HiDotsHorizontal } from "react-icons/hi";
+import { FaPlus } from "react-icons/fa6";
 import { FiFilter } from "react-icons/fi";
 import TaskForm from "../forms/TaskForm";
+import { MdOutlineUnfoldLess } from "react-icons/md";
 
-const TaskColumnOptions = ({ title, id }: { title: string; id: TStatus }) => {
+const TaskColumnOptions = ({
+  title,
+  id,
+  setFolded,
+}: {
+  title: string;
+  id: TStatus;
+  setFolded: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   return (
     <div className="flex justify-center items-center space-x-1">
-      <DropdownMenu>
-        <DropdownMenuTrigger className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full">
-          <HiDotsHorizontal />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>{title}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Change name</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Team</DropdownMenuItem>
-          <DropdownMenuItem>Subscription</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <button
+        onClick={() => setFolded(true)}
+        className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full"
+      >
+        <MdOutlineUnfoldLess />
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full">
           <FiFilter className="text-sm" />
