@@ -40,24 +40,32 @@ const Members = () => {
                   </li>
                 ))}
               </ul>
-              <Separator className="bg-zinc-400 my-1" />
-              <button
-                onClick={() => setOpen(true)}
-                className="w-full flex justify-center items-center cursor-pointer space-x-2 px-2.5 py-1.5 hover:bg-zinc-200 rounded-md"
-              >
-                <IoMdPersonAdd className="text-sm" />
-                <span className="text-sm font-semibold">Manage members</span>
-              </button>
+              {boardId && (
+                <>
+                  <Separator className="bg-zinc-400 my-1" />
+                  <button
+                    onClick={() => setOpen(true)}
+                    className="w-full flex justify-center items-center cursor-pointer space-x-2 px-2.5 py-1.5 hover:bg-zinc-200 rounded-md"
+                  >
+                    <IoMdPersonAdd className="text-sm" />
+                    <span className="text-sm font-semibold">
+                      Manage members
+                    </span>
+                  </button>
+                </>
+              )}
             </TooltipContent>
           </Tooltip>
         </div>
-        <BoardForm
-          openForm={open}
-          setOpenForm={setOpen}
-          showFields={["select-members"]}
-          initialState={board}
-          boardId={boardId}
-        />
+        {boardId && (
+          <BoardForm
+            openForm={open}
+            setOpenForm={setOpen}
+            showFields={["select-members"]}
+            initialState={board}
+            boardId={boardId}
+          />
+        )}
       </>
     );
 

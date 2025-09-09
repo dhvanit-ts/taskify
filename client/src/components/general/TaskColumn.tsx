@@ -6,6 +6,7 @@ import clsx from "clsx";
 import React, { useState } from "react";
 import TaskColumnOptions from "./TaskColumnOptions";
 import { MdOutlineUnfoldMore } from "react-icons/md";
+import { usePathname } from "next/navigation";
 
 function TaskColumn({
   children,
@@ -17,6 +18,8 @@ function TaskColumn({
   id: TStatus;
 }) {
   const [folded, setFolded] = useState(false);
+
+  const pathname = usePathname();
 
   const { isOver, setNodeRef, active } = useDroppable({
     id: title,
@@ -55,7 +58,7 @@ function TaskColumn({
         <>
           <h1 className="px-2.5 py-1 text-zinc-900 font-semibold flex items-center justify-between">
             <span>{title}</span>
-            <TaskColumnOptions setFolded={setFolded} title={title} id={id} />
+            <TaskColumnOptions isAdmin={pathname.includes("admin")} setFolded={setFolded} title={title} id={id} />
           </h1>
           {children}
         </>

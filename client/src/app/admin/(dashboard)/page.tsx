@@ -62,6 +62,14 @@ function AdminDashboard() {
 }
 
 const BoardCard = ({ board }: { board: IBoard }) => {
+  const [open, setOpen] = useState(false);
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(!open);
+  };
+
   return (
     <Link
       href={`/admin/b/${board._id}`}
@@ -71,8 +79,11 @@ const BoardCard = ({ board }: { board: IBoard }) => {
       <p className="text-2xs text-zinc-600">
         {board.members.length ?? 0} members
       </p>
-      <BoardForm>
-        <button onClick={(e) => e.stopPropagation()} className="size-6 absolute top-2 right-2 opacity-0 group-hover/board:opacity-100 flex justify-center items-center hover:bg-zinc-700 hover:text-zinc-100 text-zinc-400 cursor-pointer rounded-full">
+      <BoardForm openForm={open} setOpenForm={setOpen} boardId={board._id} initialState={board}>
+        <button
+          onClick={handleButtonClick}
+          className="size-6 absolute top-2 right-2 opacity-0 group-hover/board:opacity-100 flex justify-center items-center hover:bg-zinc-700 hover:text-zinc-100 text-zinc-400 cursor-pointer rounded-full"
+        >
           <HiDotsHorizontal />
         </button>
       </BoardForm>

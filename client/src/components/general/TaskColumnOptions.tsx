@@ -15,11 +15,13 @@ import { MdOutlineUnfoldLess } from "react-icons/md";
 
 const TaskColumnOptions = ({
   title,
+  isAdmin,
   id,
   setFolded,
 }: {
   title: string;
   id: TStatus;
+  isAdmin: boolean;
   setFolded: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
@@ -30,24 +32,28 @@ const TaskColumnOptions = ({
       >
         <MdOutlineUnfoldLess />
       </button>
-      <DropdownMenu>
-        <DropdownMenuTrigger className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full">
-          <FiFilter className="text-sm" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>{title}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Change name</DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Team</DropdownMenuItem>
-          <DropdownMenuItem>Subscription</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <TaskForm defaultStatus={id}>
-        <button className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full">
-          <FaPlus className="text-sm" />
-        </button>
-      </TaskForm>
+      {isAdmin && (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full">
+              <FiFilter className="text-sm" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>{title}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Change name</DropdownMenuItem>
+              <DropdownMenuItem>Billing</DropdownMenuItem>
+              <DropdownMenuItem>Team</DropdownMenuItem>
+              <DropdownMenuItem>Subscription</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <TaskForm defaultStatus={id}>
+            <button className="hover:bg-zinc-300 h-6 w-6 flex justify-center items-center cursor-pointer rounded-full">
+              <FaPlus className="text-sm" />
+            </button>
+          </TaskForm>
+        </>
+      )}
     </div>
   );
 };

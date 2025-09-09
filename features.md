@@ -118,7 +118,7 @@ Employees should have fewer options, limited to their tasks:
 1. **Update Task Status** – drag/move their task between To Do → In Progress → Done.
 2. **View Task Details** – description, due date, attachments, etc.
 3. **Add Comments/Notes** – communicate progress to admins.
-4. **Subtasks/Checklists** – tick off steps within their task.
+<!-- 4. **Subtasks/Checklists** – tick off steps within their task. -->
 5. **Mark Task Complete** – final step before moving to “Done”.
 6. **Personal Filters** – see only “My Tasks” or filter by deadline/priority.
 
